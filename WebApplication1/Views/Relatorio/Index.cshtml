@@ -1,10 +1,10 @@
 @model WebApplication1.Models.RelatorioFiltroViewModel
 @{
-    ViewData["Title"] = "Relatório de Clientes - Ji-Paraná";
+    ViewData["Title"] = "Relatório de Clientes";
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4">@ViewData["Title"]</h2>
+    <h2 class="mb-4">@ViewData["Title"] - @(string.IsNullOrWhiteSpace(Model.Cidade) ? "Ji-Paraná" : Model.Cidade)</h2>
 
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
@@ -14,8 +14,8 @@
             <form asp-action="Index" method="get" class="row g-3 align-items-end">
                 
                 <div class="col-md-4">
-                    <label class="form-label">Cidade</label>
-                    <input type="text" class="form-control" value="Ji-Paraná" disabled readonly />
+                    <label for="cidade" class="form-label">Cidade *</label>
+                    <input type="text" class="form-control" id="cidade" name="cidade" value="@Model.Cidade" />
                 </div>
 
                 <div class="col-md-4">

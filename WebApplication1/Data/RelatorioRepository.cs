@@ -5,7 +5,7 @@ namespace WebApplication1.Data;
 
 public interface IRelatorioRepository
 {
-    List<RelatorioClienteViewModel> ObterRelatorioClientesJiParana(string? nomeBusca);
+    List<RelatorioClienteViewModel> ObterRelatorioClientes(string? cidade, string? nomeBusca);
 }
 
 public class RelatorioRepository : IRelatorioRepository, IDisposable
@@ -17,7 +17,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
         _connection = new MySqlConnection(connectionString);
     }
 
-    public List<RelatorioClienteViewModel> ObterRelatorioClientesJiParana(string? nomeBusca)
+    public List<RelatorioClienteViewModel> ObterRelatorioClientes(string? cidade, string? nomeBusca)
     {
         const string query = @"
             SELECT 
@@ -26,7 +26,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
                 SUM(p.valor_total) AS ValorTotalAcumulado
             FROM clientes c
             INNER JOIN pedidos p ON p.cliente_id = c.id
-            WHERE c.cidade = 'Ji-Paraná'
+            WHERE c.cidade = @Cidade
                 AND p.data_pedido >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
                 AND (@NomeBusca IS NULL OR c.nome LIKE @NomeBusca)
             GROUP BY c.id, c.nome, c.cidade
@@ -37,6 +37,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
         var resultados = new List<RelatorioClienteViewModel>();
 
         using var command = new MySqlCommand(query, _connection);
+        command.Parameters.AddWithValue("@Cidade", cidade ?? "Ji-Paraná");
         command.Parameters.AddWithValue("@NomeBusca", 
             string.IsNullOrWhiteSpace(nomeBusca) ? (object)DBNull.Value : "%" + nomeBusca + "%");
 
