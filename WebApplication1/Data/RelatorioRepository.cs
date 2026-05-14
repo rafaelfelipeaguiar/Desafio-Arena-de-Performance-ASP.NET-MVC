@@ -19,28 +19,70 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
 
     public List<RelatorioClienteViewModel> ObterRelatorioClientesJiParana(string? nomeBusca)
     {
+        if (string.IsNullOrWhiteSpace(nomeBusca))
+        {
+            return ExecutarQuerySemFiltroNome();
+        }
+        else
+        {
+            return ExecutarQueryComFiltroNome(nomeBusca);
+        }
+    }
+
+    private List<RelatorioClienteViewModel> ExecutarQuerySemFiltroNome()
+    {
         const string query = @"
-            SELECT 
-                c.nome AS NomeCliente,
-                c.cidade,
-                SUM(p.valor_total) AS ValorTotalAcumulado
-            FROM clientes c
-            INNER JOIN pedidos p ON p.cliente_id = c.id
-            WHERE c.cidade = 'Ji-Paraná'
-                AND p.data_pedido >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
-                AND c.nome LIKE @NomeBusca
-            GROUP BY c.id, c.nome, c.cidade
-            HAVING COUNT(DISTINCT p.id) > 5
-            ORDER BY ValorTotalAcumulado DESC
-            LIMIT 1000;
+            SELECT
+                cli.nome,
+                cli.cidade,
+                SUM(pe.valor_total) AS valor_total_acumulado
+            FROM clientes cli
+            STRAIGHT_JOIN pedidos pe
+                ON pe.cliente_id = cli.id
+            WHERE
+                cli.cidade = 'Ji-Paraná'
+                AND pe.data_pedido >= CURDATE() - INTERVAL 90 DAY
+            GROUP BY cli.id, cli.nome, cli.cidade
+            HAVING COUNT(*) > 5
+            ORDER BY valor_total_acumulado DESC;
         ";
 
+        return ExecutarReader(query, null);
+    }
+
+    private List<RelatorioClienteViewModel> ExecutarQueryComFiltroNome(string nomeBusca)
+    {
+        const string query = @"
+            SELECT
+                cli.nome,
+                cli.cidade,
+                SUM(pe.valor_total) AS valor_total_acumulado
+            FROM clientes cli
+            STRAIGHT_JOIN pedidos pe
+                ON pe.cliente_id = cli.id
+            WHERE
+                cli.nome LIKE @NomeBusca
+                AND cli.cidade = 'Ji-Paraná'
+                AND pe.data_pedido >= CURDATE() - INTERVAL 90 DAY
+            GROUP BY cli.id, cli.nome, cli.cidade
+            HAVING COUNT(*) > 5
+            ORDER BY valor_total_acumulado DESC;
+        ";
+
+        return ExecutarReader(query, "%" + nomeBusca + "%");
+    }
+
+    private List<RelatorioClienteViewModel> ExecutarReader(string query, string? parametroNomeBusca)
+    {
         var resultados = new List<RelatorioClienteViewModel>();
 
         using var command = new MySqlCommand(query, _connection);
         command.CommandTimeout = 120;
-        command.Parameters.AddWithValue("@NomeBusca", 
-            string.IsNullOrWhiteSpace(nomeBusca) ? "%" : "%" + nomeBusca + "%");
+
+        if (parametroNomeBusca != null)
+        {
+            command.Parameters.AddWithValue("@NomeBusca", parametroNomeBusca);
+        }
 
         if (_connection.State != System.Data.ConnectionState.Open)
             _connection.Open();
