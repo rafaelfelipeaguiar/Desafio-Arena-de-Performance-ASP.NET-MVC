@@ -25,7 +25,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
         }
         else
         {
-            return ExecutarQueryComParametro();
+            return ExecutarQueryComParametro(nomeBusca);
         }
     }
 
@@ -69,7 +69,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
         return resultados;
     }
 
-    private List<RelatorioClienteViewModel> ExecutarQueryComParametro()
+    private List<RelatorioClienteViewModel> ExecutarQueryComParametro(string nomeBusca)
     {
         const string query = @"
             SELECT
@@ -80,7 +80,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
             STRAIGHT_JOIN pedidos pe
                 ON pe.cliente_id = cli.id
             WHERE
-                cli.nome = 'Cliente 126755'
+                cli.nome LIKE @NomeBusca
                 AND cli.cidade = 'Ji-Paraná'
                 AND pe.data_pedido >= CURDATE() - INTERVAL 90 DAY
             GROUP BY cli.id, cli.nome, cli.cidade
@@ -91,6 +91,7 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
 
         using var command = new MySqlCommand(query, _connection);
         command.CommandTimeout = 120;
+        command.Parameters.AddWithValue("@NomeBusca", "%" + nomeBusca + "%");
 
         if (_connection.State != System.Data.ConnectionState.Open)
             _connection.Open();
