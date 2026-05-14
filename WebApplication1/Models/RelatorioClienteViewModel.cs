@@ -9,7 +9,6 @@ public class RelatorioClienteViewModel
 
 public class RelatorioFiltroViewModel
 {
-    public string? Cidade { get; set; } = "Ji-Paraná";
     public string? NomeBusca { get; set; }
     public List<RelatorioClienteViewModel> Resultados { get; set; } = new();
 }

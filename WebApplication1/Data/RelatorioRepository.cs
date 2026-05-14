@@ -5,7 +5,7 @@ namespace WebApplication1.Data;
 
 public interface IRelatorioRepository
 {
-    List<RelatorioClienteViewModel> ObterRelatorioClientes(string? cidade, string? nomeBusca);
+    List<RelatorioClienteViewModel> ObterRelatorioClientesJiParana(string? nomeBusca);
 }
 
 public class RelatorioRepository : IRelatorioRepository, IDisposable
@@ -17,27 +17,27 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
         _connection = new MySqlConnection(connectionString);
     }
 
-    public List<RelatorioClienteViewModel> ObterRelatorioClientes(string? cidade, string? nomeBusca)
+    public List<RelatorioClienteViewModel> ObterRelatorioClientesJiParana(string? nomeBusca)
     {
         const string query = @"
-            SELECT 
-                c.nome AS NomeCliente,
-                c.cidade,
-                SUM(p.valor_total) AS ValorTotalAcumulado
-            FROM clientes c
-            INNER JOIN pedidos p ON p.cliente_id = c.id
-            WHERE c.cidade = @Cidade
-                AND p.data_pedido >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
-                AND (@NomeBusca IS NULL OR c.nome LIKE @NomeBusca)
-            GROUP BY c.id, c.nome, c.cidade
-            HAVING COUNT(DISTINCT p.id) > 5
-            ORDER BY ValorTotalAcumulado DESC;
+  SELECT
+cli.nome,
+cli.cidade,
+SUM(pe.valor_total) AS valor_total_acumulado
+FROM clientes cli
+STRAIGHT_JOIN pedidos pe
+ON pe.cliente_id = cli.id
+WHERE
+cli.nome = 'Cliente 126755'
+AND cli.cidade = 'Ji-Paraná'
+AND pe.data_pedido >= CURDATE() - INTERVAL 90 DAY
+GROUP BY cli.id, cli.nome, cli.cidade
+HAVING COUNT(*) > 5;
         ";
 
         var resultados = new List<RelatorioClienteViewModel>();
 
         using var command = new MySqlCommand(query, _connection);
-        command.Parameters.AddWithValue("@Cidade", cidade ?? "Ji-Paraná");
         command.Parameters.AddWithValue("@NomeBusca", 
             string.IsNullOrWhiteSpace(nomeBusca) ? (object)DBNull.Value : "%" + nomeBusca + "%");
 

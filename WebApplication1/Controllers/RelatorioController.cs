@@ -13,13 +13,12 @@ public class RelatorioController : Controller
         _repository = repository;
     }
 
-    public IActionResult Index(string? cidade, string? nomeBusca)
+    public IActionResult Index(string? nomeBusca)
     {
         var model = new RelatorioFiltroViewModel
         {
-            Cidade = cidade ?? "Ji-Paraná",
             NomeBusca = nomeBusca,
-            Resultados = _repository.ObterRelatorioClientes(cidade ?? "Ji-Paraná", nomeBusca)
+            Resultados = _repository.ObterRelatorioClientesJiParana(nomeBusca)
         };
 
         return View(model);

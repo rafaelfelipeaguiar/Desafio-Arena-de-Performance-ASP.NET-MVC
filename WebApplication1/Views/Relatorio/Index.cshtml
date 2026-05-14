@@ -1,10 +1,10 @@
 @model WebApplication1.Models.RelatorioFiltroViewModel
 @{
-    ViewData["Title"] = "Relatório de Clientes";
+    ViewData["Title"] = "Relatório de Clientes - Ji-Paraná";
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4">@ViewData["Title"] - @(string.IsNullOrWhiteSpace(Model.Cidade) ? "Ji-Paraná" : Model.Cidade)</h2>
+    <h2 class="mb-4">@ViewData["Title"]</h2>
 
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
@@ -14,23 +14,27 @@
             <form asp-action="Index" method="get" class="row g-3 align-items-end">
                 
                 <div class="col-md-4">
-                    <label for="cidade" class="form-label">Cidade *</label>
-                    <input type="text" class="form-control" id="cidade" name="cidade" value="@Model.Cidade" />
+                    <label class="form-label">Cidade</label>
+                    <input type="text" class="form-control" value="Ji-Paraná" disabled readonly />
+                    <small class="text-muted">Filtro fixo</small>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Mínimo de Pedidos</label>
                     <input type="text" class="form-control" value="> 5 pedidos" disabled readonly />
+                    <small class="text-muted">Filtro fixo</small>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Período</label>
                     <input type="text" class="form-control" value="Últimos 90 dias" disabled readonly />
+                    <small class="text-muted">Filtro fixo</small>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Ordenação</label>
                     <input type="text" class="form-control" value="Valor Total (decrescente)" disabled readonly />
+                    <small class="text-muted">Filtro fixo</small>
                 </div>
 
                 <div class="col-md-6">
