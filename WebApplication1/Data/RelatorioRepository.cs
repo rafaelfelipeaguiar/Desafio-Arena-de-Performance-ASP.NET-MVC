@@ -20,27 +20,27 @@ public class RelatorioRepository : IRelatorioRepository, IDisposable
     public List<RelatorioClienteViewModel> ObterRelatorioClientesJiParana(string? nomeBusca)
     {
         const string query = @"
-  SELECT
-cli.nome,
-cli.cidade,
-SUM(pe.valor_total) AS valor_total_acumulado
-FROM clientes cli
-STRAIGHT_JOIN pedidos pe
-ON pe.cliente_id = cli.id
-WHERE
-(@NomeBusca IS NULL OR cli.nome LIKE @NomeBusca)
-AND cli.cidade = 'Ji-Paraná'
-AND pe.data_pedido >= CURDATE() - INTERVAL 90 DAY
-GROUP BY cli.id, cli.nome, cli.cidade
-HAVING COUNT(*) > 5
-ORDER BY valor_total_acumulado DESC;
+            SELECT 
+                c.nome AS NomeCliente,
+                c.cidade,
+                SUM(p.valor_total) AS ValorTotalAcumulado
+            FROM clientes c
+            INNER JOIN pedidos p ON p.cliente_id = c.id
+            WHERE c.cidade = 'Ji-Paraná'
+                AND p.data_pedido >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+                AND c.nome LIKE @NomeBusca
+            GROUP BY c.id, c.nome, c.cidade
+            HAVING COUNT(DISTINCT p.id) > 5
+            ORDER BY ValorTotalAcumulado DESC
+            LIMIT 1000;
         ";
 
         var resultados = new List<RelatorioClienteViewModel>();
 
         using var command = new MySqlCommand(query, _connection);
+        command.CommandTimeout = 120;
         command.Parameters.AddWithValue("@NomeBusca", 
-            string.IsNullOrWhiteSpace(nomeBusca) ? (object)DBNull.Value : "%" + nomeBusca + "%");
+            string.IsNullOrWhiteSpace(nomeBusca) ? "%" : "%" + nomeBusca + "%");
 
         if (_connection.State != System.Data.ConnectionState.Open)
             _connection.Open();
