@@ -28,11 +28,12 @@ FROM clientes cli
 STRAIGHT_JOIN pedidos pe
 ON pe.cliente_id = cli.id
 WHERE
-cli.nome = 'Cliente 126755'
+(@NomeBusca IS NULL OR cli.nome LIKE @NomeBusca)
 AND cli.cidade = 'Ji-Paraná'
 AND pe.data_pedido >= CURDATE() - INTERVAL 90 DAY
 GROUP BY cli.id, cli.nome, cli.cidade
-HAVING COUNT(*) > 5;
+HAVING COUNT(*) > 5
+ORDER BY valor_total_acumulado DESC;
         ";
 
         var resultados = new List<RelatorioClienteViewModel>();
